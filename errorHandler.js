@@ -8,9 +8,10 @@ exports.internalErrorHandler = (err, req, res, next) => {
 };
 exports.psqlError = (err, req, res, next) => {
   if (err.code) {
-    // console.log("ERROR TRIGGERED - source: psql");
+    // console.log("ERROR TRIGGERED - source: psql" + err.code);
     const psqlErrorCodes = {
-      "22P02": { status: 400, msg: "bad request" }
+      "22P02": { status: 400, msg: "bad request" },
+      "23503": { status: 404, msg: "not found" }
     };
 
     if (psqlErrorCodes[err.code] !== undefined) {

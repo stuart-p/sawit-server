@@ -99,6 +99,7 @@ describe("/api", () => {
           .get("/api/articles/4")
           .expect(200)
           .then(({ body }) => {
+            // console.log(body);
             expect(body).to.have.keys("article");
             expect(body.article).to.have.keys(
               "article_id",
@@ -107,9 +108,19 @@ describe("/api", () => {
               "votes",
               "topic",
               "author",
-              "created_at"
+              "created_at",
+              "comment_count"
             );
             expect(body.article.article_id).to.equal(4);
+          });
+      });
+      it("GET:200 a valid get request returns a count of the comments associated with an article, appended to the article object", () => {
+        return request(server)
+          .get("/api/articles/5")
+          .expect(200)
+          .then(({ body }) => {
+            // console.log(body);
+            expect(body.article.comment_count).to.equal(2);
           });
       });
       it("GET: 404 returns not found when passed a valid but non existant article_id", () => {
@@ -127,6 +138,208 @@ describe("/api", () => {
           .then(({ body: { msg } }) => {
             expect(msg).to.equal("bad request");
           });
+      });
+      it("PATCH: 200 returns updated article when passed a valid article_id and body data", () => {
+        const voteIncrement = 2;
+        const input = {
+          inc_votes: voteIncrement
+        };
+        return request(server)
+          .patch("/api/articles/4")
+          .send(input)
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.updatedArticle.votes).to.equal(voteIncrement);
+          })
+          .then(() => {
+            return request(server)
+              .patch("/api/articles/4")
+              .send(input)
+              .expect(200);
+          })
+          .then(({ body }) => {
+            expect(body.updatedArticle.votes).to.equal(
+              voteIncrement + voteIncrement
+            );
+          });
+      });
+      it("PATCH: 406 returns bad request when passed a valid article_id but no vote incrememntor", () => {
+        const input = {
+          invalid_key: 45
+        };
+        return request(server)
+          .patch("/api/articles/4")
+          .send(input)
+          .expect(406)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("bad request - not enough data provided");
+          });
+      });
+      it("PATCH: 404 returns not found when passed a valid article_id that doesnt exist", () => {
+        const input = {
+          inc_votes: 3
+        };
+        return request(server)
+          .patch("/api/articles/999")
+          .send(input)
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("article not found");
+          });
+      });
+      it("PATCH: 400 returns bad request when passed an invalid article_id", () => {
+        const input = {
+          inc_votes: 3
+        };
+        return request(server)
+          .patch("/api/articles/INVALID")
+          .send(input)
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("bad request");
+          });
+      });
+      it("PATCH: 406 returns not acceptable when passed a valid article_id but a non-integer vote incrememt", () => {
+        const input = {
+          inc_votes: "INVALID"
+        };
+        return request(server)
+          .patch("/api/articles/4")
+          .send(input)
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("bad request");
+          });
+      });
+      it("PATCH: 200 returns valid data when passed a valid article_id and a body that contains additional fields", () => {
+        const input = {
+          inc_votes: 2,
+          random_field: "INVALID"
+        };
+        return request(server)
+          .patch("/api/articles/4")
+          .send(input)
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.updatedArticle.votes).to.equal(2);
+          });
+      });
+      describe("/api/articles/:article_id/comments", () => {
+        it("POST: 201 returns the posted comment when passed a valid article_id and body containing a valid username and body text", () => {
+          const input = {
+            username: "butter_bridge",
+            body:
+              "this is a comment posted as per post comment to article_id test"
+          };
+          return request(server)
+            .post("/api/articles/1/comments")
+            .send(input)
+            .expect(201)
+            .then(({ body }) => {
+              // console.log(body);
+              expect(body).to.have.keys("comment");
+              expect(body.comment).to.have.keys(
+                "comments_id",
+                "author",
+                "article_id",
+                "votes",
+                "created_at",
+                "body"
+              );
+              expect(body.comment.votes).to.equal(0);
+              expect(body.comment.author).to.equal("butter_bridge");
+              expect(body.comment.article_id).to.equal(1);
+              expect(body.comment.body).to.equal(
+                "this is a comment posted as per post comment to article_id test"
+              );
+            });
+        });
+        it("POST: 404 returns not found when a valid but non-existant article_id is passed", () => {
+          const input = {
+            username: "butter_bridge",
+            body:
+              "this is a comment posted as per post comment to article_id test"
+          };
+          return request(server)
+            .post("/api/articles/999/comments")
+            .send(input)
+            .expect(404)
+            .then(({ body: { msg } }) => {
+              expect(msg).to.equal("not found");
+            });
+        });
+        it("POST: 400 returns bad request when passed an article_id that is invalid", () => {
+          const input = {
+            username: "butter_bridge",
+            body:
+              "this is a comment posted as per post comment to article_id test"
+          };
+          return request(server)
+            .post("/api/articles/INVALID/comments")
+            .send(input)
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).to.equal("bad request");
+            });
+        });
+        it("POST: 400 returns bad request when passed a username in the body that does not exist", () => {
+          const input = {
+            username: "INVALID",
+            body:
+              "this is a comment posted as per post comment to article_id test"
+          };
+          return request(server)
+            .post("/api/articles/1/comments")
+            .send(input)
+            .expect(404)
+            .then(({ body: { msg } }) => {
+              expect(msg).to.equal("not found");
+            });
+        });
+        it("POST: 400 returns bad request when passed a body that doenst contain all required keys", () => {
+          let input = {
+            username: "butter_bridge"
+          };
+          inputTwo = {
+            body:
+              "this is a comment posted as per post comment to article_id test"
+          };
+          return request(server)
+            .post("/api/articles/1/comments")
+            .send(input)
+            .expect(406)
+            .then(({ body: { msg } }) => {
+              expect(msg).to.equal("bad request - not enough data provided");
+            })
+            .then(() => {
+              return request(server)
+                .post("/api/articles/1/comments")
+                .send(inputTwo)
+                .expect(406);
+            })
+            .then(({ body: { msg } }) => {
+              expect(msg).to.equal("bad request - not enough data provided");
+            });
+        });
+
+        it("GET: 200 returns an object with key comments and value array of comments when passed a valid article_id", () => {
+          return request(server)
+            .get("/api/articles/1/comments")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body).to.have.keys("comments");
+              expect(body.comments).to.be.an("array");
+              body.comments.forEach(comment => {
+                expect(comment).to.have.keys(
+                  "comments_id",
+                  "votes",
+                  "created_at",
+                  "author",
+                  "body"
+                );
+              });
+            });
+        });
       });
     });
   });
