@@ -1,9 +1,11 @@
 process.env.NODE_ENV = "test";
-const { expect } = require("chai");
+const chai = require("chai");
+const expect = chai.expect;
 const connection = require("../db/connection");
 const server = require("../server");
 const request = require("supertest");
 
+chai.use(require("sams-chai-sorted"));
 after(() => {
   connection.destroy();
 });
@@ -93,6 +95,14 @@ describe("/api", () => {
     });
   });
   describe("/api/articles", () => {
+    it.only("GET: 200 returns an object containing an array of all articles", () => {
+      return request(server)
+        .get("/api/articles")
+        .expect(200)
+        .then(({ body }) => {
+          console.log(body);
+        });
+    });
     describe("/api/articles/:article_id", () => {
       it("GET: 200. returns a specific article when passed a valid article_id", () => {
         return request(server)
@@ -224,6 +234,18 @@ describe("/api", () => {
             expect(body.updatedArticle.votes).to.equal(2);
           });
       });
+      it("PUT, POST, DELETE: 405 returns method not allowed", () => {
+        const invalidMethods = ["put", "delete", "post"];
+        const methodPromises = invalidMethods.map(method => {
+          return request(server)
+            [method]("/api/articles/4")
+            .expect(405)
+            .then(({ body: { msg } }) => {
+              expect(msg).to.equal("method not allowed");
+            });
+        });
+        return Promise.all(methodPromises);
+      });
       describe("/api/articles/:article_id/comments", () => {
         it("POST: 201 returns the posted comment when passed a valid article_id and body containing a valid username and body text", () => {
           const input = {
@@ -339,6 +361,95 @@ describe("/api", () => {
                 );
               });
             });
+        });
+        it("GET: 404 returns not found when passed a valid but not present article_id", () => {
+          return request(server)
+            .get("/api/articles/999/comments")
+            .expect(404)
+            .then(({ body: { msg } }) => {
+              expect(msg).to.equal("article not found");
+            });
+        });
+        it("GET: 200 returns an empty array when passed a valid but empty article_id", () => {
+          return request(server)
+            .get("/api/articles/4/comments")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body).to.have.keys("comments");
+              expect(body.comments.length).to.equal(0);
+            });
+        });
+        it("GET: default sorting is by created_at,  descending", () => {
+          return request(server)
+            .get("/api/articles/1/comments")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comments).to.be.sortedBy("created_at", {
+                descending: true
+              });
+            });
+        });
+        it("GET: comments are sorted by valid column when sort_by query is used", () => {
+          const validSorts = ["votes", "comments_id", "created_at"];
+
+          const validQuery = validSorts.map(query => {
+            return request(server)
+              .get(`/api/articles/1/comments?sort_by=${query}`)
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.be.sortedBy(query, {
+                  descending: true
+                });
+              });
+          });
+
+          return Promise.all(validQuery);
+        });
+        it("GET: comments are ordered ascending or descending when a valid order query is used", () => {
+          const validOrders = ["asc", "desc"];
+
+          const validQuery = validOrders.map(query => {
+            return request(server)
+              .get(`/api/articles/1/comments?order=${query}`)
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.be.sortedBy("created_at", {
+                  descending: query === "desc" ? true : false
+                });
+              });
+          });
+
+          return Promise.all(validQuery);
+        });
+        it("GET: non-existant queries are ignored", () => {
+          return request(server)
+            .get("/api/articles/1/comments?invalid=votes")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comments).to.be.sortedBy("created_at", {
+                descending: true
+              });
+            });
+        });
+        it("GET: 400 returns bad request when passed a query with an invalid parameter", () => {
+          return request(server)
+            .get("/api/articles/1/comments?sort_by=invalid")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).to.equal("bad request - query incorrectly formatted");
+            });
+        });
+        it("PATCH, PUT, DELETE: 405 returns invalid method ", () => {
+          const invalidMethods = ["patch", "put", "delete"];
+          const methodPromises = invalidMethods.map(method => {
+            return request(server)
+              [method]("/api/articles/1/comments")
+              .expect(405)
+              .then(({ body: { msg } }) => {
+                expect(msg).to.equal("method not allowed");
+              });
+          });
+          return Promise.all(methodPromises);
         });
       });
     });

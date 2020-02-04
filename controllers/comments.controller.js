@@ -2,12 +2,21 @@ const {
   fetchCommentsOnArticle,
   addCommentToArticle
 } = require("../models/comments.model");
+const { fetchArticle } = require("../models/articles.model");
 
 exports.getCommentsOnArticle = (req, res, next) => {
+  const { sort_by, order } = req.query;
   const { article_id } = req.params;
-  fetchCommentsOnArticle(article_id).then(comments => {
-    res.status(200).send({ comments });
-  });
+  fetchArticle(article_id)
+    .then(() => {
+      return fetchCommentsOnArticle(article_id, sort_by, order);
+    })
+    .then(comments => {
+      res.status(200).send({ comments });
+    })
+    .catch(err => {
+      next(err);
+    });
 };
 
 exports.postCommentToArticle = (req, res, next) => {

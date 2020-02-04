@@ -6,9 +6,9 @@ function fetchArticle(article_id) {
     .from("articles")
     .where("article_id", article_id)
     .then(article => {
-      if (article.length === 0)
+      if (article.length === 0) {
         return Promise.reject({ status: 404, msg: "article not found" });
-      else {
+      } else {
         return Promise.all([
           article[0],
           database("comments")
@@ -20,6 +20,15 @@ function fetchArticle(article_id) {
     .then(([article, [commentCount]]) => {
       article.comment_count = parseInt(commentCount.count);
       return article;
+    });
+}
+
+function fetchAllArticles() {
+  return database
+    .select("author", "title", "article_id", "topic", "created_at", "votes")
+    .from("articles")
+    .then(articles => {
+      return articles;
     });
 }
 
@@ -45,4 +54,4 @@ function updateArticle(articleToUpdate, votesToUpdate) {
     });
 }
 
-module.exports = { fetchArticle, updateArticle };
+module.exports = { fetchArticle, fetchAllArticles, updateArticle };

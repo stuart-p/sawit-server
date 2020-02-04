@@ -1,21 +1,27 @@
 const articlesRouter = require("express").Router();
 const {
   getArticle,
-  patchArticle
+  patchArticle,
+  getAllArticles
 } = require("../controllers/articles.controller");
 const {
   getCommentsOnArticle,
   postCommentToArticle
 } = require("../controllers/comments.controller");
+const errorHandler = require("../errorHandler");
+
+articlesRouter.route("/").get(getAllArticles);
 
 articlesRouter
   .route("/:article_id")
   .get(getArticle)
-  .patch(patchArticle);
+  .patch(patchArticle)
+  .all(errorHandler.unauthorisedMethod);
 
 articlesRouter
   .route("/:article_id/comments")
   .get(getCommentsOnArticle)
-  .post(postCommentToArticle);
+  .post(postCommentToArticle)
+  .all(errorHandler.unauthorisedMethod);
 
 module.exports = { articlesRouter };

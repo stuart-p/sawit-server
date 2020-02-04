@@ -11,7 +11,8 @@ exports.psqlError = (err, req, res, next) => {
     // console.log("ERROR TRIGGERED - source: psql" + err.code);
     const psqlErrorCodes = {
       "22P02": { status: 400, msg: "bad request" },
-      "23503": { status: 404, msg: "not found" }
+      "23503": { status: 404, msg: "not found" },
+      "42703": { status: 400, msg: "bad request - query incorrectly formatted" }
     };
 
     if (psqlErrorCodes[err.code] !== undefined) {

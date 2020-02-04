@@ -1,14 +1,14 @@
 const database = require("../db/connection");
 
-function fetchCommentsOnArticle(article_id) {
+function fetchCommentsOnArticle(article_id, sort_by, order) {
+  if (sort_by === undefined) sort_by = "created_at";
+  if (order === undefined) order = "desc";
   return database
-    .select("*")
+    .select("comments_id", "votes", "created_at", "author", "body")
     .from("comments")
     .where("article_id", article_id)
+    .orderBy(sort_by, order)
     .then(comments => {
-      comments.forEach(comment => {
-        delete comment.article_id;
-      });
       return comments;
     });
 }
