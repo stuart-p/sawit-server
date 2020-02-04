@@ -1,7 +1,7 @@
 //migration methods for table - COMMENTS
 
 exports.up = function(knex) {
-  console.log("creating COMMENTS table");
+  // console.log("creating COMMENTS table");
   return knex.schema.createTable("comments", commentsTable => {
     commentsTable.increments("comments_id").primary();
     commentsTable.string("author").references("users.username");
@@ -13,6 +13,6 @@ exports.up = function(knex) {
 };
 
 exports.down = function(knex) {
-  console.log("destroying COMMENTS table");
+  // console.log("destroying COMMENTS table");
   return knex.schema.dropTable("comments");
 };

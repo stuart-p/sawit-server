@@ -1,4 +1,4 @@
-exports.formatDates = list => {
+const formatDates = list => {
   if (list === undefined) return [];
   const listWithUpdatedDates = list.map(article => {
     const freshArticle = { ...article };
@@ -11,7 +11,7 @@ exports.formatDates = list => {
   return listWithUpdatedDates;
 };
 
-exports.makeRefObj = list => {
+const makeRefObj = list => {
   const refObj = {};
   if (!list) return refObj;
   list.forEach(article => {
@@ -21,16 +21,16 @@ exports.makeRefObj = list => {
   return refObj;
 };
 
-exports.formatComments = (comments, articleRef) => {
+const formatComments = (comments, articleRef) => {
   if (!comments) return [];
 
   let formattedCommentsArray = comments.map(comment => {
     const newComment = { ...comment };
-    newComment.author = newComment["created_by"];
-    delete newComment["created_by"];
+    newComment.author = newComment.created_by;
+    delete newComment.created_by;
 
-    newComment.article_id = articleRef[newComment["belongs_to"]];
-    delete newComment["belongs_to"];
+    newComment.article_id = articleRef[newComment.belongs_to];
+    delete newComment.belongs_to;
     return newComment;
   });
 
@@ -38,3 +38,5 @@ exports.formatComments = (comments, articleRef) => {
 
   return formattedCommentsArray;
 };
+
+module.exports = { formatDates, makeRefObj, formatComments };

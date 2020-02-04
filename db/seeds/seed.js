@@ -25,30 +25,19 @@ exports.seed = function(knex) {
     })
     .then(([topicRows, userRows]) => {
       const formattedData = formatDates(articleData);
-      const articlesInsertions = knex("articles")
+      return knex("articles")
         .insert(formattedData)
         .returning("*");
-      return Promise.all([articlesInsertions, topicRows, userRows]);
     })
-    .then(([articleRows, topicRows, userRows]) => {
-      // console.log(articleRows);
+    .then(articleRows => {
       const articleRef = makeRefObj(articleRows);
-      console.log(articleRef);
       const formattedComments = formatComments(commentData, articleRef);
       return knex("comments")
         .insert(formattedComments)
         .returning("*");
-      /*
-
-    Your comment data is currently in the incorrect format and will violate your SQL schema.
-
-    Keys need renaming, values need changing, and most annoyingly, your comments currently only refer to the title of the article they belong to, not the id.
-
-    You will need to write and test the provided makeRefObj and formatComments utility functions to be able insert your comment data.
-    */
     })
     .then(commentRows => {
-      console.log(commentRows);
-      console.log("all data imported into " + process.env.NODE_ENV);
+      // console.log(commentRows);
+      // console.log("data seeded! Database: " + process.env.NODE_ENV);
     });
 };
