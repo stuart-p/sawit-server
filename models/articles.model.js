@@ -20,7 +20,7 @@ function fetchArticle(article_id) {
     })
     .then(([article, [commentCount]]) => {
       article.comment_count = parseInt(commentCount.count);
-      return article;
+      return [article];
     });
 }
 
@@ -83,7 +83,7 @@ function updateArticle(articleToUpdate, votesToUpdate) {
       if (updatedArticle.length === 0) {
         return Promise.reject({ status: 404, msg: "article not found" });
       } else {
-        return updatedArticle[0];
+        return updatedArticle;
       }
     });
 }

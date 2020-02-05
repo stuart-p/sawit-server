@@ -35,7 +35,7 @@ function addCommentToArticle(article_id, author, body) {
     .into("comments")
     .returning("*")
     .then(postedComment => {
-      return postedComment[0];
+      return postedComment;
     });
 }
 
@@ -56,7 +56,7 @@ function updateComment(comments_id, updatedVote) {
       if (updatedComment.length === 0) {
         return Promise.reject({ status: 404, msg: "comment not found" });
       } else {
-        return updatedComment[0];
+        return updatedComment;
       }
     });
 }

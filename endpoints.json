@@ -9,6 +9,19 @@
       "topics": [{ "slug": "football", "description": "Footie!" }]
     }
   },
+  "GET /api/users/:username": {
+    "description": "serves an object of the queried user",
+    "queries": [],
+    "exampleResponse": {
+      "user": [
+        {
+          "username": "ernie101",
+          "avatar_url": "www.github.com/ernie101pic",
+          "name": "John Smith"
+        }
+      ]
+    }
+  },
   "GET /api/articles": {
     "description": "serves an array of all topics",
     "queries": ["author", "topic", "sort_by", "order"],

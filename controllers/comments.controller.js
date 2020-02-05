@@ -26,8 +26,8 @@ exports.postCommentToArticle = (req, res, next) => {
   const { body } = req;
 
   addCommentToArticle(article_id, body.username, body.body)
-    .then(comment => {
-      res.status(201).send({ comment });
+    .then(comments => {
+      res.status(201).send({ comments });
     })
     .catch(err => {
       next(err);
@@ -40,8 +40,8 @@ exports.patchComment = (req, res, next) => {
     body: { inc_votes }
   } = req;
   updateComment(comments_id, inc_votes)
-    .then(updatedComment => {
-      res.status(200).send({ updatedComment });
+    .then(comments => {
+      res.status(200).send({ comments });
     })
     .catch(err => {
       next(err);
