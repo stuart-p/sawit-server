@@ -17,12 +17,12 @@ beforeEach(() => {
 });
 
 describe("/api", () => {
-  xit("GET: 200 returns and JSON of all valid api endpoints", () => {
+  it("GET: 200 returns and JSON of all valid api endpoints", () => {
     return request(server)
       .get("/api")
       .expect(200)
       .then(({ body }) => {
-        console.log(body);
+        expect(body).to.have.keys("endpoints");
       });
   });
   describe("/api/topics", () => {
@@ -301,7 +301,7 @@ describe("/api", () => {
           .then(({ body }) => {
             // console.log(body);
             expect(body).to.have.keys("articles");
-            expect(body.articles[0]).to.have.keys(
+            expect(body.articles).to.have.keys(
               "article_id",
               "title",
               "body",
@@ -311,7 +311,7 @@ describe("/api", () => {
               "created_at",
               "comment_count"
             );
-            expect(body.articles[0].article_id).to.equal(4);
+            expect(body.articles.article_id).to.equal(4);
           });
       });
       it("GET:200 a valid get request returns a count of the comments associated with an article, appended to the article object", () => {
@@ -320,7 +320,7 @@ describe("/api", () => {
           .expect(200)
           .then(({ body }) => {
             // console.log(body);
-            expect(body.articles[0].comment_count).to.equal(2);
+            expect(body.articles.comment_count).to.equal(2);
           });
       });
       it("GET: 404 returns not found when passed a valid but non existant article_id", () => {
@@ -349,7 +349,7 @@ describe("/api", () => {
           .send(input)
           .expect(200)
           .then(({ body }) => {
-            expect(body.articles[0].votes).to.equal(voteIncrement);
+            expect(body.articles.votes).to.equal(voteIncrement);
           })
           .then(() => {
             return request(server)
@@ -358,9 +358,7 @@ describe("/api", () => {
               .expect(200);
           })
           .then(({ body }) => {
-            expect(body.articles[0].votes).to.equal(
-              voteIncrement + voteIncrement
-            );
+            expect(body.articles.votes).to.equal(voteIncrement + voteIncrement);
           });
       });
       it("PATCH: 406 returns bad request when passed a valid article_id but no vote incrememntor", () => {
@@ -421,7 +419,7 @@ describe("/api", () => {
           .send(input)
           .expect(200)
           .then(({ body }) => {
-            expect(body.articles[0].votes).to.equal(2);
+            expect(body.articles.votes).to.equal(2);
           });
       });
       it("PUT, POST, DELETE: 405 returns method not allowed", () => {
@@ -450,7 +448,7 @@ describe("/api", () => {
             .then(({ body }) => {
               // console.log(body);
               expect(body).to.have.keys("comments");
-              expect(body.comments[0]).to.have.keys(
+              expect(body.comments).to.have.keys(
                 "comments_id",
                 "author",
                 "article_id",
@@ -458,10 +456,10 @@ describe("/api", () => {
                 "created_at",
                 "body"
               );
-              expect(body.comments[0].votes).to.equal(0);
-              expect(body.comments[0].author).to.equal("butter_bridge");
-              expect(body.comments[0].article_id).to.equal(1);
-              expect(body.comments[0].body).to.equal(
+              expect(body.comments.votes).to.equal(0);
+              expect(body.comments.author).to.equal("butter_bridge");
+              expect(body.comments.article_id).to.equal(1);
+              expect(body.comments.body).to.equal(
                 "this is a comment posted as per post comment to article_id test"
               );
             });
@@ -656,7 +654,7 @@ describe("/api", () => {
           .send(input)
           .expect(200)
           .then(({ body }) => {
-            expect(body.comments[0].votes).to.equal(voteIncrement);
+            expect(body.comments.votes).to.equal(voteIncrement);
           })
           .then(() => {
             return request(server)
@@ -665,9 +663,7 @@ describe("/api", () => {
               .expect(200);
           })
           .then(({ body }) => {
-            expect(body.comments[0].votes).to.equal(
-              voteIncrement + voteIncrement
-            );
+            expect(body.comments.votes).to.equal(voteIncrement + voteIncrement);
           });
       });
       it("PATCH: 406 returns bad request when passed a valid comments_id but no incremementor", () => {
@@ -728,7 +724,7 @@ describe("/api", () => {
           .send(input)
           .expect(200)
           .then(({ body }) => {
-            expect(body.comments[0].votes).to.equal(2);
+            expect(body.comments.votes).to.equal(2);
           });
       });
       it("DELETE: 204 returns no content when passed a valid comment_id", () => {
