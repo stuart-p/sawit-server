@@ -95,13 +95,74 @@ describe("/api", () => {
     });
   });
   describe("/api/articles", () => {
-    it.only("GET: 200 returns an object containing an array of all articles", () => {
+    it("GET: 200 returns an object containing an array of all articles", () => {
       return request(server)
         .get("/api/articles")
         .expect(200)
         .then(({ body }) => {
-          console.log(body);
+          expect(body).to.have.keys("articles");
+          body.articles.forEach(article => {
+            expect(article).to.have.keys(
+              "author",
+              "title",
+              "article_id",
+              "topic",
+              "created_at",
+              "votes",
+              "comment_count"
+            );
+          });
         });
+    });
+    it("GET: 200 returns articles with an appended comment_count parameter, which matches with the comments for an article", () => {
+      return request(server)
+        .get("/api/articles")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles[0].comment_count).to.equal(13);
+        });
+    });
+    it("GET: 200 defaults to sorted by date", () => {
+      return request(server)
+        .get("/api/articles")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles).to.be.sortedBy("created_at");
+        });
+    });
+    it("GET: 200 defaults to ordered descending", () => {
+      return request(server)
+        .get("/api/articles")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles).to.be.sortedBy("created_at", {
+            descending: true
+          });
+        });
+    });
+    it.only("GET:200 passing valid sort_by query sorts the data correctly", () => {
+      const validSorts = [
+        "votes",
+        "author",
+        "title",
+        "topic",
+        "article_id",
+        "created_at",
+        "comment_count"
+      ];
+
+      const validQuery = validSorts.map(query => {
+        return request(server)
+          .get(`/api/articles?sort_by=${query}`)
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.articles).to.be.sortedBy(query, {
+              descending: true
+            });
+          });
+      });
+
+      return Promise.all(validQuery);
     });
     describe("/api/articles/:article_id", () => {
       it("GET: 200. returns a specific article when passed a valid article_id", () => {

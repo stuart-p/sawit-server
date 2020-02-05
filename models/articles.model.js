@@ -23,11 +23,28 @@ function fetchArticle(article_id) {
     });
 }
 
-function fetchAllArticles() {
+function fetchAllArticles(sort_by, order, author, topic) {
+  if (sort_by === undefined) sort_by = "created_at";
+  if (order === undefined) order = "desc";
+
   return database
-    .select("author", "title", "article_id", "topic", "created_at", "votes")
+    .select(
+      "articles.author",
+      "articles.title",
+      "articles.article_id",
+      "articles.topic",
+      "articles.created_at",
+      "articles.votes"
+    )
     .from("articles")
+    .leftJoin("comments", "articles.article_id", "=", "comments.article_id")
+    .count("*", { as: "comment_count" })
+    .groupBy("articles.article_id")
+    .orderBy(sort_by, order)
     .then(articles => {
+      articles.forEach(article => {
+        article.comment_count = parseInt(article.comment_count);
+      });
       return articles;
     });
 }
