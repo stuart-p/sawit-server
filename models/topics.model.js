@@ -9,4 +9,18 @@ function fetchTopics() {
     });
 }
 
-module.exports = { fetchTopics };
+function fetchTopicData(topicName) {
+  return database
+    .select("*")
+    .from("topics")
+    .where("slug", topicName)
+    .then(topic => {
+      if (topic.length === 0) {
+        return Promise.reject({ status: 404, msg: "topic not found" });
+      } else {
+        return topic[0];
+      }
+    });
+}
+
+module.exports = { fetchTopics, fetchTopicData };

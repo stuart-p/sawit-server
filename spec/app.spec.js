@@ -29,18 +29,18 @@ describe("/api", () => {
           });
         });
     });
-  });
-  it("PUT PATCH PUSH DELETE return 405 method not allowed", () => {
-    const invalidMethods = ["patch", "put", "delete", "post"];
-    const methodPromises = invalidMethods.map(method => {
-      return request(server)
-        [method]("/api/topics")
-        .expect(405)
-        .then(({ body: { msg } }) => {
-          expect(msg).to.equal("method not allowed");
-        });
+    it("PUT PATCH PUSH DELETE return 405 method not allowed", () => {
+      const invalidMethods = ["patch", "put", "delete", "post"];
+      const methodPromises = invalidMethods.map(method => {
+        return request(server)
+          [method]("/api/topics")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("method not allowed");
+          });
+      });
+      return Promise.all(methodPromises);
     });
-    return Promise.all(methodPromises);
   });
   describe("/api/users", () => {
     it("GET PUSH POST PATCH DELETE return 405 method not allowed", () => {
@@ -127,7 +127,9 @@ describe("/api", () => {
         .get("/api/articles")
         .expect(200)
         .then(({ body }) => {
-          expect(body.articles).to.be.sortedBy("created_at");
+          expect(body.articles).to.be.sortedBy("created_at", {
+            descending: true
+          });
         });
     });
     it("GET: 200 defaults to ordered descending", () => {
@@ -140,7 +142,7 @@ describe("/api", () => {
           });
         });
     });
-    it.only("GET:200 passing valid sort_by query sorts the data correctly", () => {
+    it("GET:200 passing valid sort_by query sorts the data correctly", () => {
       const validSorts = [
         "votes",
         "author",
@@ -163,6 +165,125 @@ describe("/api", () => {
       });
 
       return Promise.all(validQuery);
+    });
+    it("GET: 200 passing valid order query orders the data correctly", () => {
+      const validOrders = ["asc", "desc"];
+
+      const validQuery = validOrders.map(query => {
+        return request(server)
+          .get(`/api/articles?order=${query}`)
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.articles).to.be.sortedBy("created_at", {
+              descending: query === "desc" ? true : false
+            });
+          });
+      });
+
+      return Promise.all(validQuery);
+    });
+    it("GET: 200 passing valid author query returns articles filtered by author", () => {
+      return request(server)
+        .get("/api/articles?author=butter_bridge")
+        .expect(200)
+        .then(({ body }) => {
+          body.articles.forEach(article => {
+            expect(article.author).to.equal("butter_bridge");
+          });
+        });
+    });
+    it("GET:200 passing valid topic query returns articles filtered by topics", () => {
+      return request(server)
+        .get("/api/articles?topic=mitch")
+        .expect(200)
+        .then(({ body }) => {
+          body.articles.forEach(article => {
+            expect(article.topic).to.equal("mitch");
+          });
+        });
+    });
+    it("GET:200 passing valid author filter returns an empty array if the author hasnt posted anything yet", () => {
+      return request(server)
+        .get("/api/articles?author=lurker")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles).to.be.an("array");
+          expect(body.articles.length).to.equal(0);
+        });
+    });
+    it("GET:200 passing valid topic filter returns an empty array if the topic hasnt been posted to yet", () => {
+      return request(server)
+        .get("/api/articles?topic=paper")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles).to.be.an("array");
+          expect(body.articles.length).to.equal(0);
+        });
+    });
+    it("GET:200 passing multiple valid queries returns valid articles", () => {
+      return request(server)
+        .get("/api/articles?topic=mitch&&sort_by=votes")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles).to.be.sortedBy("votes", { descending: true });
+          body.articles.forEach(article => {
+            expect(article.topic).to.equal("mitch");
+          });
+        });
+    });
+    it("GET: non-existant queries are ignored", () => {
+      return request(server)
+        .get("/api/articles?invalid=45")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles).to.be.sortedBy("created_at", {
+            descending: true
+          });
+        });
+    });
+    it("GET: 400 returns bad request when pass an invalid sort_by request", () => {
+      return request(server)
+        .get("/api/articles?sort_by=invalid")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("bad request - query incorrectly formatted");
+        });
+    });
+    it("GET: 400 returns bad request when passed an invalid order request", () => {
+      return request(server)
+        .get("/api/articles?order=invalid")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("bad request - query incorrectly formatted");
+        });
+    });
+    it("GET: 404 returns not found when passed an author filter that is not in the database", () => {
+      return request(server)
+        .get("/api/articles?author=INVALID")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("username not found");
+        });
+    });
+    it("GET:404 returns not found when passed a topic filter that is not in the database", () => {
+      return request(server)
+        .get("/api/articles?topic=INVALID")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("topic not found");
+        });
+    });
+    it("PUT PATCH DELETE POST returns 405 on api/articles end point", () => {
+      const invalidMethods = ["patch", "put", "delete", "post"];
+      const methodPromises = invalidMethods.map(method => {
+        return request(server)
+          [method]("/api/articles")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("method not allowed");
+          });
+      });
+      return Promise.all(methodPromises);
     });
     describe("/api/articles/:article_id", () => {
       it("GET: 200. returns a specific article when passed a valid article_id", () => {
@@ -512,6 +633,128 @@ describe("/api", () => {
           });
           return Promise.all(methodPromises);
         });
+      });
+    });
+  });
+  describe("/api/comments", () => {
+    describe("/api/comments/:comments_id", () => {
+      it("PATCH: 200 returns updated comment when passed a valid comments_id and body data", () => {
+        const voteIncrement = 2;
+        const input = {
+          inc_votes: voteIncrement
+        };
+        return request(server)
+          .patch("/api/comments/5")
+          .send(input)
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.updatedComment.votes).to.equal(voteIncrement);
+          })
+          .then(() => {
+            return request(server)
+              .patch("/api/comments/5")
+              .send(input)
+              .expect(200);
+          })
+          .then(({ body }) => {
+            expect(body.updatedComment.votes).to.equal(
+              voteIncrement + voteIncrement
+            );
+          });
+      });
+      it("PATCH: 406 returns bad request when passed a valid comments_id but no incremementor", () => {
+        const input = {
+          invalid_key: 45
+        };
+        return request(server)
+          .patch("/api/comments/5")
+          .send(input)
+          .expect(406)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("bad request - not enough data provided");
+          });
+      });
+      it("PATCH: 404 returns not found when passed a valid comments_id that doesnt exist", () => {
+        const input = {
+          inc_votes: 3
+        };
+        return request(server)
+          .patch("/api/comments/999")
+          .send(input)
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("comment not found");
+          });
+      });
+      it("PATCH: 400 returns bad request when passed an invalid comment_id", () => {
+        const input = {
+          inc_votes: 3
+        };
+        return request(server)
+          .patch("/api/comments/INVALID")
+          .send(input)
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("bad request");
+          });
+      });
+      it("PATCH: 406 returns not acceptable when passed a valid article_id but a non-integer vote incremenet", () => {
+        const input = {
+          inc_votes: "INVALID"
+        };
+        return request(server)
+          .patch("/api/comments/5")
+          .send(input)
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("bad request");
+          });
+      });
+      it("PATCH: 200 returns valid data when passed a valid comment_id and a body that contains additional fields", () => {
+        const input = {
+          inc_votes: 2,
+          random_field: "INVALID"
+        };
+        return request(server)
+          .patch("/api/comments/5")
+          .send(input)
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.updatedComment.votes).to.equal(2);
+          });
+      });
+      it("DELETE: 204 returns no content when passed a valid comment_id", () => {
+        return request(server)
+          .delete("/api/comments/5")
+          .expect(204);
+      });
+      it("DELETE: 404 returns not found when passed a valid but non existant comment_id", () => {
+        return request(server)
+          .delete("/api/comments/99999")
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("comment not found");
+          });
+      });
+      it("DELETE: 400 returns bad request when passed an invalid comment_id", () => {
+        return request(server)
+          .delete("/api/comments/INVALID")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("bad request");
+          });
+      });
+      it("GET PUT POST: 405 returns method not allowed", () => {
+        const invalidMethods = ["get", "put", "post"];
+        const methodPromises = invalidMethods.map(method => {
+          return request(server)
+            [method]("/api/comments/5")
+            .expect(405)
+            .then(({ body: { msg } }) => {
+              expect(msg).to.equal("method not allowed");
+            });
+        });
+        return Promise.all(methodPromises);
       });
     });
   });

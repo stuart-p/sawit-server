@@ -10,7 +10,10 @@ const {
 } = require("../controllers/comments.controller");
 const errorHandler = require("../errorHandler");
 
-articlesRouter.route("/").get(getAllArticles);
+articlesRouter
+  .route("/")
+  .get(getAllArticles)
+  .all(errorHandler.unauthorisedMethod);
 
 articlesRouter
   .route("/:article_id")

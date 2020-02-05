@@ -1,6 +1,8 @@
 const {
   fetchCommentsOnArticle,
-  addCommentToArticle
+  addCommentToArticle,
+  updateComment,
+  delComment
 } = require("../models/comments.model");
 const { fetchArticle } = require("../models/articles.model");
 
@@ -26,6 +28,31 @@ exports.postCommentToArticle = (req, res, next) => {
   addCommentToArticle(article_id, body.username, body.body)
     .then(comment => {
       res.status(201).send({ comment });
+    })
+    .catch(err => {
+      next(err);
+    });
+};
+
+exports.patchComment = (req, res, next) => {
+  const { comments_id } = req.params;
+  const {
+    body: { inc_votes }
+  } = req;
+  updateComment(comments_id, inc_votes)
+    .then(updatedComment => {
+      res.status(200).send({ updatedComment });
+    })
+    .catch(err => {
+      next(err);
+    });
+};
+
+exports.deleteComment = (req, res, next) => {
+  const { comments_id } = req.params;
+  delComment(comments_id)
+    .then(() => {
+      res.status(204).send();
     })
     .catch(err => {
       next(err);
