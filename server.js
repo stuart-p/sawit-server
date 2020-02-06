@@ -5,6 +5,7 @@ const errorHandler = require("./errorHandler");
 
 server.use(express.json());
 
+server.use("/", errorHandler.unauthorisedMethod);
 server.use("/api", apiRouter);
 
 server.use(errorHandler.internalErrorHandler);
