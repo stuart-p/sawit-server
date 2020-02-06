@@ -449,7 +449,7 @@ describe("/api", () => {
               // console.log(body);
               expect(body).to.have.keys("comment");
               expect(body.comment).to.have.keys(
-                "comments_id",
+                "comment_id",
                 "author",
                 "article_id",
                 "votes",
@@ -644,8 +644,8 @@ describe("/api", () => {
     });
   });
   describe("/api/comments", () => {
-    describe("/api/comments/:comments_id", () => {
-      it("PATCH: 200 returns updated comment when passed a valid comments_id and body data", () => {
+    describe("/api/comments/:comment_id", () => {
+      it("PATCH: 200 returns updated comment when passed a valid comment_id and body data", () => {
         const voteIncrement = 2;
         const input = {
           inc_votes: voteIncrement
@@ -667,7 +667,7 @@ describe("/api", () => {
             expect(body.comment.votes).to.equal(voteIncrement + voteIncrement);
           });
       });
-      it("PATCH: 200 returns original comment when passed a valid comments_id but no incremementor", () => {
+      it("PATCH: 200 returns original comment when passed a valid comment_id but no incremementor", () => {
         const input = {
           invalid_key: 45
         };
@@ -679,7 +679,7 @@ describe("/api", () => {
             expect(body.comment.votes).to.equal(0);
           });
       });
-      it("PATCH: 404 returns not found when passed a valid comments_id that doesnt exist", () => {
+      it("PATCH: 404 returns not found when passed a valid comment_id that doesnt exist", () => {
         const input = {
           inc_votes: 3
         };

@@ -6,7 +6,7 @@ const {
 const errorHandler = require("../errorHandler");
 
 commentsRouter
-  .route("/:comments_id")
+  .route("/:comment_id")
   .patch(patchComment)
   .delete(deleteComment)
   .all(errorHandler.unauthorisedMethod);

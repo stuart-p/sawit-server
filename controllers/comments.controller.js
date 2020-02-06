@@ -35,11 +35,11 @@ exports.postCommentToArticle = (req, res, next) => {
 };
 
 exports.patchComment = (req, res, next) => {
-  const { comments_id } = req.params;
+  const { comment_id } = req.params;
   const {
     body: { inc_votes }
   } = req;
-  updateComment(comments_id, inc_votes)
+  updateComment(comment_id, inc_votes)
     .then(comment => {
       res.status(200).send({ comment });
     })
@@ -49,8 +49,8 @@ exports.patchComment = (req, res, next) => {
 };
 
 exports.deleteComment = (req, res, next) => {
-  const { comments_id } = req.params;
-  delComment(comments_id)
+  const { comment_id } = req.params;
+  delComment(comment_id)
     .then(() => {
       res.status(204).send();
     })

@@ -1,9 +1,9 @@
 const database = require("../db/connection");
 
-function fetchComment(comments_id) {
+function fetchComment(comment_id) {
   return database
     .select(
-      "comments.comments_id as comment_id",
+      "comments.comment_id",
       "comments.author",
       "comments.article_id",
       "comments.votes",
@@ -11,7 +11,7 @@ function fetchComment(comments_id) {
       "comments.body"
     )
     .from("comments")
-    .where("comments.comments_id", comments_id)
+    .where("comments.comment_id", comment_id)
     .then(comment => {
       if (comment.length === 0) {
         return Promise.reject({ status: 404, msg: "comment not found" });
@@ -31,13 +31,7 @@ function fetchCommentsOnArticle(article_id, sort_by, order) {
     });
   }
   return database
-    .select(
-      "comments_id as comment_id",
-      "votes",
-      "created_at",
-      "author",
-      "body"
-    )
+    .select("comment_id", "votes", "created_at", "author", "body")
     .from("comments")
     .where("article_id", article_id)
     .orderBy(sort_by, order)
@@ -66,21 +60,14 @@ function addCommentToArticle(article_id, author, body) {
     });
 }
 
-function updateComment(comments_id, updatedVote) {
+function updateComment(comment_id, updatedVote) {
   if (updatedVote === undefined) {
-    return fetchComment(comments_id);
+    return fetchComment(comment_id);
   }
   return database
-    .select(
-      "comments.comments_id as comment_id",
-      "comments.author",
-      "comments.article_id",
-      "comments.votes",
-      "comments.created_at",
-      "comments.body"
-    )
+    .select("*")
     .from("comments")
-    .where("comments_id", comments_id)
+    .where("comment_id", comment_id)
     .increment("votes", updatedVote)
     .returning("*")
     .then(updatedComment => {
@@ -92,11 +79,11 @@ function updateComment(comments_id, updatedVote) {
     });
 }
 
-function delComment(comments_id) {
+function delComment(comment_id) {
   return database
     .delete()
     .from("comments")
-    .where("comments_id", comments_id)
+    .where("comment_id", comment_id)
     .then(numDeleted => {
       if (numDeleted === 0) {
         return Promise.reject({ status: 404, msg: "comment not found" });
