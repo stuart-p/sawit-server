@@ -3,25 +3,39 @@ const database = require("../db/connection");
 
 function fetchArticle(article_id) {
   return database
-    .select("*")
+    .select(
+      "articles.author",
+      "articles.title",
+      "articles.article_id",
+      "articles.body",
+      "articles.topic",
+      "articles.created_at",
+      "articles.votes"
+    )
     .from("articles")
-    .where("article_id", article_id)
+    .leftJoin("comments", "articles.article_id", "=", "comments.article_id")
+    .count("*", { as: "comment_count" })
+    .groupBy("articles.article_id")
+    .where("articles.article_id", article_id)
     .then(article => {
       if (article.length === 0) {
         return Promise.reject({ status: 404, msg: "article not found" });
       } else {
-        return Promise.all([
-          article[0],
-          database("comments")
-            .where("article_id", article[0].article_id)
-            .count("*")
-        ]);
+        // console.log(article);
+        article[0].comment_count = parseInt(article[0].comment_count);
+        return article[0];
+        // return Promise.all([
+        //   article[0],
+        //   database("comments")
+        //     .where("article_id", article[0].article_id)
+        //     .count("*")
+        // ]);
       }
-    })
-    .then(([article, [commentCount]]) => {
-      article.comment_count = parseInt(commentCount.count);
-      return article;
     });
+  // .then(([article, [commentCount]]) => {
+  //   article.comment_count = parseInt(commentCount.count);
+  //   return article;
+  // });
 }
 
 function fetchAllArticles(sort_by, order, author, topic) {
@@ -68,10 +82,7 @@ function fetchAllArticles(sort_by, order, author, topic) {
 
 function updateArticle(articleToUpdate, votesToUpdate) {
   if (votesToUpdate === undefined) {
-    return Promise.reject({
-      status: 406,
-      msg: "bad request - not enough data provided"
-    });
+    return fetchArticle(articleToUpdate);
   }
   return database
     .select("*")

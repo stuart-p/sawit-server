@@ -1,5 +1,26 @@
 const database = require("../db/connection");
 
+function fetchComment(comments_id) {
+  return database
+    .select(
+      "comments.comments_id as comment_id",
+      "comments.author",
+      "comments.article_id",
+      "comments.votes",
+      "comments.created_at",
+      "comments.body"
+    )
+    .from("comments")
+    .where("comments.comments_id", comments_id)
+    .then(comment => {
+      if (comment.length === 0) {
+        return Promise.reject({ status: 404, msg: "comment not found" });
+      } else {
+        return comment[0];
+      }
+    });
+}
+
 function fetchCommentsOnArticle(article_id, sort_by, order) {
   if (sort_by === undefined) sort_by = "created_at";
   if (order === undefined) order = "desc";
@@ -10,7 +31,13 @@ function fetchCommentsOnArticle(article_id, sort_by, order) {
     });
   }
   return database
-    .select("comments_id", "votes", "created_at", "author", "body")
+    .select(
+      "comments_id as comment_id",
+      "votes",
+      "created_at",
+      "author",
+      "body"
+    )
     .from("comments")
     .where("article_id", article_id)
     .orderBy(sort_by, order)
@@ -22,7 +49,7 @@ function fetchCommentsOnArticle(article_id, sort_by, order) {
 function addCommentToArticle(article_id, author, body) {
   if (author === undefined || body === undefined)
     return Promise.reject({
-      status: 406,
+      status: 400,
       msg: "bad request - not enough data provided"
     });
   const constructedComment = {
@@ -41,13 +68,17 @@ function addCommentToArticle(article_id, author, body) {
 
 function updateComment(comments_id, updatedVote) {
   if (updatedVote === undefined) {
-    return Promise.reject({
-      status: 406,
-      msg: "bad request - not enough data provided"
-    });
+    return fetchComment(comments_id);
   }
   return database
-    .select("*")
+    .select(
+      "comments.comments_id as comment_id",
+      "comments.author",
+      "comments.article_id",
+      "comments.votes",
+      "comments.created_at",
+      "comments.body"
+    )
     .from("comments")
     .where("comments_id", comments_id)
     .increment("votes", updatedVote)

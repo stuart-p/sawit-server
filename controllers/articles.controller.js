@@ -10,8 +10,8 @@ const { fetchTopicData } = require("../models/topics.model");
 exports.getArticle = (req, res, next) => {
   const { article_id } = req.params;
   fetchArticle(article_id)
-    .then(articles => {
-      res.status(200).send({ articles });
+    .then(article => {
+      res.status(200).send({ article });
     })
     .catch(err => {
       next(err);
@@ -46,8 +46,8 @@ exports.patchArticle = (req, res, next) => {
     body: { inc_votes }
   } = req;
   updateArticle(article_id, inc_votes)
-    .then(articles => {
-      res.status(200).send({ articles });
+    .then(article => {
+      res.status(200).send({ article });
     })
     .catch(err => {
       next(err);
