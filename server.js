@@ -5,8 +5,8 @@ const errorHandler = require("./errorHandler");
 
 server.use(express.json());
 
-server.use("/", errorHandler.unauthorisedMethod);
 server.use("/api", apiRouter);
+server.use("/", errorHandler.unauthorisedMethod);
 
 server.use(errorHandler.internalErrorHandler);
 server.use(errorHandler.psqlError);
