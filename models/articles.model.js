@@ -1,5 +1,4 @@
 const database = require("../db/connection");
-// const {fetchUserData} = require('../models/users.model')
 
 function fetchArticle(article_id) {
   return database
@@ -17,30 +16,22 @@ function fetchArticle(article_id) {
     .count("*", { as: "comment_count" })
     .groupBy("articles.article_id")
     .where("articles.article_id", article_id)
-    .then(article => {
-      if (article.length === 0) {
+    .then(articleArray => {
+      if (articleArray.length === 0) {
         return Promise.reject({ status: 404, msg: "article not found" });
       } else {
-        // console.log(article);
-        article[0].comment_count = parseInt(article[0].comment_count);
-        return article[0];
-        // return Promise.all([
-        //   article[0],
-        //   database("comments")
-        //     .where("article_id", article[0].article_id)
-        //     .count("*")
-        // ]);
+        articleArray[0].comment_count = parseInt(articleArray[0].comment_count);
+        return articleArray[0];
       }
     });
-  // .then(([article, [commentCount]]) => {
-  //   article.comment_count = parseInt(commentCount.count);
-  //   return article;
-  // });
 }
 
-function fetchAllArticles(sort_by, order, author, topic) {
-  if (sort_by === undefined) sort_by = "created_at";
-  if (order === undefined) order = "desc";
+function fetchAllArticles(
+  sort_by = "created_at",
+  order = "desc",
+  author,
+  topic
+) {
   if (order !== "asc" && order !== "desc") {
     return Promise.reject({
       status: 400,
@@ -90,11 +81,11 @@ function updateArticle(articleToUpdate, votesToUpdate) {
     .where("article_id", articleToUpdate)
     .increment("votes", votesToUpdate)
     .returning("*")
-    .then(updatedArticle => {
-      if (updatedArticle.length === 0) {
+    .then(updatedArticleArray => {
+      if (updatedArticleArray.length === 0) {
         return Promise.reject({ status: 404, msg: "article not found" });
       } else {
-        return updatedArticle[0];
+        return updatedArticleArray[0];
       }
     });
 }

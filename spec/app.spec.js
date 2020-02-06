@@ -11,9 +11,7 @@ after(() => {
 });
 
 beforeEach(() => {
-  return connection.seed.run().then(() => {
-    // console.log("database seeded! Database: " + process.env.NODE_ENV);
-  });
+  return connection.seed.run().then(() => {});
 });
 
 describe("/api", () => {
@@ -299,7 +297,6 @@ describe("/api", () => {
           .get("/api/articles/4")
           .expect(200)
           .then(({ body }) => {
-            // console.log(body);
             expect(body).to.have.keys("article");
             expect(body.article).to.have.keys(
               "article_id",
@@ -319,7 +316,6 @@ describe("/api", () => {
           .get("/api/articles/5")
           .expect(200)
           .then(({ body }) => {
-            // console.log(body);
             expect(body.article.comment_count).to.equal(2);
           });
       });
@@ -446,7 +442,6 @@ describe("/api", () => {
             .send(input)
             .expect(201)
             .then(({ body }) => {
-              // console.log(body);
               expect(body).to.have.keys("comment");
               expect(body.comment).to.have.keys(
                 "comment_id",
@@ -537,7 +532,6 @@ describe("/api", () => {
             .get("/api/articles/1/comments")
             .expect(200)
             .then(({ body }) => {
-              // console.log(body);
               expect(body).to.have.keys("comments");
               expect(body.comments).to.be.an("array");
               body.comments.forEach(comment => {

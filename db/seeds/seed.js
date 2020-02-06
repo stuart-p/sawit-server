@@ -36,8 +36,5 @@ exports.seed = function(knex) {
         .insert(formattedComments)
         .returning("*");
     })
-    .then(commentRows => {
-      // console.log(commentRows);
-      // console.log("data seeded! Database: " + process.env.NODE_ENV);
-    });
+    .then(commentRows => {});
 };

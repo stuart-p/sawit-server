@@ -7,7 +7,6 @@ const {
 } = require("../db/utils/utils");
 
 describe("formatDates", () => {
-  //takes a node utc timestamp and converts to a psql format
   it("function returns an array", () => {
     const output = formatDates();
 

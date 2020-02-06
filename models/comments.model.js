@@ -12,18 +12,20 @@ function fetchComment(comment_id) {
     )
     .from("comments")
     .where("comments.comment_id", comment_id)
-    .then(comment => {
-      if (comment.length === 0) {
+    .then(commentArray => {
+      if (commentArray.length === 0) {
         return Promise.reject({ status: 404, msg: "comment not found" });
       } else {
-        return comment[0];
+        return commentArray[0];
       }
     });
 }
 
-function fetchCommentsOnArticle(article_id, sort_by, order) {
-  if (sort_by === undefined) sort_by = "created_at";
-  if (order === undefined) order = "desc";
+function fetchCommentsOnArticle(
+  article_id,
+  sort_by = "created_at",
+  order = "desc"
+) {
   if (order !== "asc" && order !== "desc") {
     return Promise.reject({
       status: 400,
@@ -34,10 +36,7 @@ function fetchCommentsOnArticle(article_id, sort_by, order) {
     .select("comment_id", "votes", "created_at", "author", "body")
     .from("comments")
     .where("article_id", article_id)
-    .orderBy(sort_by, order)
-    .then(comments => {
-      return comments;
-    });
+    .orderBy(sort_by, order);
 }
 
 function addCommentToArticle(article_id, author, body) {
@@ -55,8 +54,8 @@ function addCommentToArticle(article_id, author, body) {
     .insert(constructedComment)
     .into("comments")
     .returning("*")
-    .then(postedComment => {
-      return postedComment[0];
+    .then(postedCommentArray => {
+      return postedCommentArray[0];
     });
 }
 
@@ -70,11 +69,11 @@ function updateComment(comment_id, updatedVote) {
     .where("comment_id", comment_id)
     .increment("votes", updatedVote)
     .returning("*")
-    .then(updatedComment => {
-      if (updatedComment.length === 0) {
+    .then(updatedCommentArray => {
+      if (updatedCommentArray.length === 0) {
         return Promise.reject({ status: 404, msg: "comment not found" });
       } else {
-        return updatedComment[0];
+        return updatedCommentArray[0];
       }
     });
 }

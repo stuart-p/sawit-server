@@ -1,7 +1,4 @@
-//migration methods for table - USERS
-
 exports.up = function(knex) {
-  // console.log("creating USERS table");
   return knex.schema.createTable("users", usersTable => {
     usersTable
       .string("username")
@@ -14,6 +11,5 @@ exports.up = function(knex) {
 };
 
 exports.down = function(knex) {
-  // console.log("destroying USERS table");
   return knex.schema.dropTable("users");
 };

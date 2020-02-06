@@ -1,12 +1,7 @@
 const database = require("../db/connection");
 
 function fetchTopics() {
-  return database
-    .select("*")
-    .from("topics")
-    .then(topics => {
-      return topics;
-    });
+  return database.select("*").from("topics");
 }
 
 function fetchTopicData(topicName) {
@@ -14,11 +9,11 @@ function fetchTopicData(topicName) {
     .select("*")
     .from("topics")
     .where("slug", topicName)
-    .then(topic => {
-      if (topic.length === 0) {
+    .then(topicArray => {
+      if (topicArray.length === 0) {
         return Promise.reject({ status: 404, msg: "topic not found" });
       } else {
-        return topic[0];
+        return topicArray[0];
       }
     });
 }
