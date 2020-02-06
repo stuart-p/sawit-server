@@ -8,7 +8,6 @@ const {
 const { formatDates, formatComments, makeRefObj } = require("../utils/utils");
 
 exports.seed = function(knex) {
-  //ensure that database is properly migrated prior to seeding
   return knex.migrate
     .rollback()
     .then(() => {
