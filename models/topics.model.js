@@ -18,4 +18,24 @@ function fetchTopicData(topicName) {
     });
 }
 
-module.exports = { fetchTopics, fetchTopicData };
+function addTopic(slug, description) {
+  if (slug === undefined || description === undefined) {
+    return Promise.reject({
+      status: 400,
+      msg: "bad request - incomplete data"
+    });
+  }
+  const constructedTopic = {
+    slug,
+    description
+  };
+  return database
+    .insert(constructedTopic)
+    .into("topics")
+    .returning("*")
+    .then(topicArray => {
+      return topicArray[0];
+    });
+}
+
+module.exports = { fetchTopics, fetchTopicData, addTopic };

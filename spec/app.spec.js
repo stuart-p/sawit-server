@@ -35,6 +35,45 @@ describe("/api", () => {
           });
         });
     });
+    it("POST: 200 returns topic when passed valid body", () => {
+      const input = {
+        slug: "test",
+        description: "This is a test topic added during testing"
+      };
+      return request(server)
+        .post("/api/topics")
+        .send(input)
+        .expect(201)
+        .then(({ body }) => {
+          expect(body).to.have.keys("topic");
+          expect(body.topic).to.have.keys("slug", "description");
+        });
+    });
+    it("POST: 400 return bad request when passed an incomplete body", () => {
+      const input = {
+        slug: "test"
+      };
+      return request(server)
+        .post("/api/topics")
+        .send(input)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("bad request - incomplete data");
+        });
+    });
+    it("POSt: 400 returns bad request when passed a pre-existing slug", () => {
+      const input = {
+        slug: "paper",
+        description: "this slug should already exist"
+      };
+      return request(server)
+        .post("/api/topics")
+        .send(input)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("bad request - key already exists");
+        });
+    });
     it("PUT PATCH PUSH DELETE return 405 method not allowed", () => {
       const invalidMethods = ["patch", "put", "delete", "post"];
       const methodPromises = invalidMethods.map(method => {
@@ -49,8 +88,62 @@ describe("/api", () => {
     });
   });
   describe("/api/users", () => {
-    it("GET PUSH POST PATCH DELETE return 405 method not allowed", () => {
-      const invalidMethods = ["get", "patch", "put", "post", "delete"];
+    it.only("GET: 200 returns a list of all users", () => {
+      return request(server)
+        .get("/api/users")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body).to.have.keys("users");
+          body.users.forEach(user => {
+            expect(user).to.have.keys("username", "avatar_url", "name");
+          });
+        });
+    });
+    it("POST: 201 returns new user when passed valid body", () => {
+      const input = {
+        username: "test",
+        avatar_url: "www.test.com",
+        name: "Mr Test"
+      };
+      return request(server)
+        .post("/api/users")
+        .send(input)
+        .expect(201)
+        .then(({ body }) => {
+          expect(body).to.have.keys("user");
+          expect(body.user).to.have.keys("username", "avatar_url", "name");
+        });
+    });
+    it("POST: 400 bad request when passed incomplete body", () => {
+      const input = {
+        username: "test",
+        name: "Mr Test"
+      };
+      return request(server)
+        .post("/api/users")
+        .send(input)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("bad request - incomplete information");
+        });
+    });
+    it("POST: 400 bad request when passed a username that already exists", () => {
+      const input = {
+        username: "lurker",
+        avatar_url: "www.test.com",
+
+        name: "Mr Test"
+      };
+      return request(server)
+        .post("/api/users")
+        .send(input)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("bad request - key already exists");
+        });
+    });
+    it("GET PUSH PATCH DELETE return 405 method not allowed", () => {
+      const invalidMethods = ["get", "patch", "put", "delete"];
       const methodPromises = invalidMethods.map(method => {
         return request(server)
           [method]("/api/users")

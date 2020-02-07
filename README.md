@@ -2,7 +2,7 @@
 
 **[ Live server can be directly accessed at https://sawit-server.herokuapp.com/](https://sawit-server.herokuapp.com/)**
 
-This is the server-side code for my portfolio project; SAWIT. This website can be used to post and vote on articles and comments on various topics, in a similar fashion to REDDIT. Backend is **Node.js**, frontend is **REACT**. All data is stored in a **PostgreSQL** database.
+This is the server-side code for my portfolio project; SAWIT. This website can be used to post and vote on articles and comments on various topics, in a similar fashion to REDDIT. Backend is a **Node.js Express server**, frontend is **REACT**. All data is stored in a **PostgreSQL** database.
 
 ## Getting Started (usage)
 
@@ -11,11 +11,10 @@ The server is obviously meant to be accessed via a front end, however the API ca
 ```
 Sawit-server.herokuapp.com
 ├── /api (GET)
-      ├── /topics (GET)
+      ├── /topics (GET, POST)
       ├── /articles (GET [sort_by, order, author, topic, page, page limit], POST)
-            ├── /:article_id (GET, PATCH)
+            ├── /:article_id (GET, PATCH [inc_vote], DELETE)
                     ├── /comments (GET [sort_by, order, page, page limit], POST)
-                    ├── /:article_id (GET, PATCH [inc_vote])
       ├── /users
               ├── /:username (GET)
       ├── /comments
@@ -33,7 +32,7 @@ If you would like to get your own example of this server up and running, you can
 
 ### Prerequisites
 
-This project requires `NODE`, and has the following dependencies:
+This project requires `NODE.js`, and has the following dependencies:
 
 ```
 production dependencies:

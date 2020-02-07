@@ -10,7 +10,11 @@ exports.psqlError = (err, req, res, next) => {
     const psqlErrorCodes = {
       "22P02": { status: 400, msg: "bad request" },
       "23503": { status: 404, msg: "not found" },
-      "42703": { status: 400, msg: "bad request - query incorrectly formatted" }
+      "42703": {
+        status: 400,
+        msg: "bad request - query incorrectly formatted"
+      },
+      "23505": { status: 400, msg: "bad request - key already exists" }
     };
 
     if (psqlErrorCodes[err.code] !== undefined) {

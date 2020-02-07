@@ -9,6 +9,17 @@
       "topics": [{ "slug": "football", "description": "Footie!" }]
     }
   },
+  "POST /api/topics": {
+    "description": "posts a new topic",
+    "queries": [],
+    "body": {
+      "slug": "new topic",
+      "description": "new topic descriptions"
+    },
+    "exampleResponse": {
+      "topic": [{ "slug": "football", "description": "Footie!" }]
+    }
+  },
   "GET /api/users/:username": {
     "description": "serves an object of the queried user",
     "queries": [],
