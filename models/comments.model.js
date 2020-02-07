@@ -24,7 +24,9 @@ function fetchComment(comment_id) {
 function fetchCommentsOnArticle(
   article_id,
   sort_by = "created_at",
-  order = "desc"
+  order = "desc",
+  limit = 10,
+  p = 1
 ) {
   if (order !== "asc" && order !== "desc") {
     return Promise.reject({
@@ -32,11 +34,37 @@ function fetchCommentsOnArticle(
       msg: "bad request - query incorrectly formatted"
     });
   }
-  return database
+  if (isNaN(p) || isNaN(limit)) {
+    return Promise.reject({ status: 400, msg: "bad request" });
+  }
+  if (p <= 0) {
+    return Promise.reject({
+      status: 400,
+      msg: "bad request - invalid page number"
+    });
+  }
+  if (limit <= 0) {
+    return Promise.reject({
+      status: 400,
+      msg: "bad request - invalid page limit"
+    });
+  }
+  const commentData = database
     .select("comment_id", "votes", "created_at", "author", "body")
     .from("comments")
     .where("article_id", article_id)
     .orderBy(sort_by, order);
+
+  return Promise.all([
+    commentData.clone(),
+    commentData
+      .clone()
+      .limit(limit)
+      .offset((p - 1) * limit)
+  ]).then(([allMatches, comments]) => {
+    const total_count = allMatches.length;
+    return { total_count, comments };
+  });
 }
 
 function addCommentToArticle(article_id, author, body) {

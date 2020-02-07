@@ -30,7 +30,9 @@ function fetchAllArticles(
   sort_by = "created_at",
   order = "desc",
   author,
-  topic
+  topic,
+  limit = 10,
+  p = 1
 ) {
   if (order !== "asc" && order !== "desc") {
     return Promise.reject({
@@ -38,8 +40,22 @@ function fetchAllArticles(
       msg: "bad request - query incorrectly formatted"
     });
   }
-
-  return database
+  if (isNaN(p) || isNaN(limit)) {
+    return Promise.reject({ status: 400, msg: "bad request" });
+  }
+  if (p <= 0) {
+    return Promise.reject({
+      status: 400,
+      msg: "bad request - invalid page number"
+    });
+  }
+  if (limit <= 0) {
+    return Promise.reject({
+      status: 400,
+      msg: "bad request - invalid page limit"
+    });
+  }
+  const articleData = database
     .select(
       "articles.author",
       "articles.title",
@@ -49,10 +65,6 @@ function fetchAllArticles(
       "articles.votes"
     )
     .from("articles")
-    .leftJoin("comments", "articles.article_id", "=", "comments.article_id")
-    .count("*", { as: "comment_count" })
-    .groupBy("articles.article_id")
-    .orderBy(sort_by, order)
     .modify(query => {
       if (author !== undefined) {
         query.where("articles.author", author);
@@ -62,13 +74,24 @@ function fetchAllArticles(
       if (topic !== undefined) {
         query.where("articles.topic", topic);
       }
-    })
-    .then(articles => {
-      articles.forEach(article => {
-        article.comment_count = parseInt(article.comment_count);
-      });
-      return articles;
     });
+  return Promise.all([
+    articleData.clone(),
+    articleData
+      .clone()
+      .leftJoin("comments", "articles.article_id", "=", "comments.article_id")
+      .count("*", { as: "comment_count" })
+      .groupBy("articles.article_id")
+      .orderBy(sort_by, order)
+      .limit(limit)
+      .offset((p - 1) * limit)
+  ]).then(([allMatches, articles]) => {
+    const total_count = allMatches.length;
+    articles.forEach(article => {
+      article.comment_count = parseInt(article.comment_count);
+    });
+    return { total_count, articles };
+  });
 }
 
 function updateArticle(articleToUpdate, votesToUpdate) {

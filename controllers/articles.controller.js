@@ -19,7 +19,7 @@ exports.getArticle = (req, res, next) => {
 };
 
 exports.getAllArticles = (req, res, next) => {
-  const { sort_by, order, author, topic } = req.query;
+  const { sort_by, order, author, topic, limit, p } = req.query;
   let filterByAuthor;
   let filterBytopic;
   if (author !== undefined) {
@@ -30,10 +30,10 @@ exports.getAllArticles = (req, res, next) => {
   }
   return Promise.all([filterByAuthor, filterBytopic])
     .then(([validUser, validTopic]) => {
-      return fetchAllArticles(sort_by, order, author, topic);
+      return fetchAllArticles(sort_by, order, author, topic, limit, p);
     })
-    .then(articles => {
-      res.status(200).send({ articles });
+    .then(({ total_count, articles }) => {
+      res.status(200).send({ total_count, articles });
     })
     .catch(err => {
       next(err);

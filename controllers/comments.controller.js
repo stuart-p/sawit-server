@@ -7,14 +7,14 @@ const {
 const { fetchArticle } = require("../models/articles.model");
 
 exports.getCommentsOnArticle = (req, res, next) => {
-  const { sort_by, order } = req.query;
+  const { sort_by, order, limit, p } = req.query;
   const { article_id } = req.params;
   fetchArticle(article_id)
     .then(() => {
-      return fetchCommentsOnArticle(article_id, sort_by, order);
+      return fetchCommentsOnArticle(article_id, sort_by, order, limit, p);
     })
-    .then(comments => {
-      res.status(200).send({ comments });
+    .then(({ total_count, comments }) => {
+      res.status(200).send({ total_count, comments });
     })
     .catch(err => {
       next(err);

@@ -106,7 +106,7 @@ describe("/api", () => {
         .get("/api/articles")
         .expect(200)
         .then(({ body }) => {
-          expect(body).to.have.keys("articles");
+          expect(body).to.have.any.keys("articles");
           body.articles.forEach(article => {
             expect(article).to.have.keys(
               "author",
@@ -235,6 +235,87 @@ describe("/api", () => {
           body.articles.forEach(article => {
             expect(article.topic).to.equal("mitch");
           });
+        });
+    });
+    it("GET:200 returns a default of first 10 articles", () => {
+      return request(server)
+        .get("/api/articles")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles.length).to.equal(10);
+        });
+    });
+    it("GET:200 passing a limit query sets the returned page limit", () => {
+      return request(server)
+        .get("/api/articles?limit=8")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles.length).to.equal(8);
+        });
+    });
+    it("GET: 200 page query sets the page number of the returned results", () => {
+      return request(server)
+        .get("/api/articles?p=2")
+        .expect(200)
+        .then(({ body }) => {
+          body.articles.forEach((article, increment) => {
+            expect(article.article_id).to.equal(10 + 1 + increment);
+          });
+        });
+    });
+    it("GET:200 page query and limit work together to return the correct result", () => {
+      const page = 4;
+      const pageLimit = 2;
+      return request(server)
+        .get("/api/articles?p=4&&limit=2")
+        .expect(200)
+        .then(({ body }) => {
+          body.articles.forEach((article, increment) => {
+            expect(article.article_id).to.equal(
+              (page - 1) * pageLimit + 1 + increment
+            );
+          });
+        });
+    });
+    it("GET:200 returns an object with a total_count key for all articles that match the query", () => {
+      return request(server)
+        .get("/api/articles")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body).to.have.any.keys("total_count");
+          expect(body.total_count).to.equal(12);
+        });
+    });
+    it("GET: 400 bad request if sent a page number <=0 ", () => {
+      return request(server)
+        .get("/api/articles?p=-999")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("bad request - invalid page number");
+        });
+    });
+    it("GET: 400 bad request if sent a page limit <=0", () => {
+      return request(server)
+        .get("/api/articles?limit=-999")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("bad request - invalid page limit");
+        });
+    });
+    it("GET: 400 bad request if sent invalid page number", () => {
+      return request(server)
+        .get("/api/articles?p=INVALID")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("bad request");
+        });
+    });
+    it("GET: 400 bad request if sent invalid page limit", () => {
+      return request(server)
+        .get("/api/articles?limit=INVALID")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("bad request");
         });
     });
     it("GET: non-existant queries are ignored", () => {
@@ -532,7 +613,7 @@ describe("/api", () => {
             .get("/api/articles/1/comments")
             .expect(200)
             .then(({ body }) => {
-              expect(body).to.have.keys("comments");
+              expect(body).to.have.any.keys("comments");
               expect(body.comments).to.be.an("array");
               body.comments.forEach(comment => {
                 expect(comment).to.have.keys(
@@ -558,7 +639,7 @@ describe("/api", () => {
             .get("/api/articles/4/comments")
             .expect(200)
             .then(({ body }) => {
-              expect(body).to.have.keys("comments");
+              expect(body).to.have.any.keys("comments");
               expect(body.comments.length).to.equal(0);
             });
         });
@@ -601,17 +682,80 @@ describe("/api", () => {
                 });
               });
           });
-
-          return Promise.all(validQuery);
         });
-        it("GET: non-existant queries are ignored", () => {
+        it("GET:200 returns a default of first 10 articles", () => {
           return request(server)
-            .get("/api/articles/1/comments?invalid=votes")
+            .get("/api/articles/1/comments")
             .expect(200)
             .then(({ body }) => {
-              expect(body.comments).to.be.sortedBy("created_at", {
-                descending: true
-              });
+              expect(body.comments.length).to.equal(10);
+            });
+        });
+        it("GET:200 passing a limit query sets the returned page limit", () => {
+          return request(server)
+            .get("/api/articles/1/comments?limit=8")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comments.length).to.equal(8);
+            });
+        });
+        it("GET: 200 page query sets the page number of the returned results", () => {
+          return request(server)
+            .get("/api/articles/1/comments?p=2")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comments.length).to.equal(3);
+            });
+        });
+        it("GET:200 page query and limit work together to return the correct result", () => {
+          const page = 4;
+          const pageLimit = 2;
+          return request(server)
+            .get("/api/articles/1/comments?p=4&&limit=2")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comments.length).to.equal(2);
+            });
+        });
+        it("GET:200 returns an object with a total_count key for all articles that match the query", () => {
+          return request(server)
+            .get("/api/articles/1/comments")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body).to.have.any.keys("total_count");
+              expect(body.total_count).to.equal(13);
+            });
+        });
+        it("GET: 400 bad request if sent a page number <=0 ", () => {
+          return request(server)
+            .get("/api/articles/1/comments?p=-999")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).to.equal("bad request - invalid page number");
+            });
+        });
+        it("GET: 400 bad request if sent a page limit <=0", () => {
+          return request(server)
+            .get("/api/articles/1/comments?limit=-999")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).to.equal("bad request - invalid page limit");
+            });
+        });
+        it("GET: 400 bad request if sent invalid page number", () => {
+          return request(server)
+            .get("/api/articles/1/comments?p=INVALID")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).to.equal("bad request");
+            });
+        });
+        it("GET: 400 bad request if sent invalid page limit", () => {
+          return request(server)
+            .get("/api/articles/1/comments?limit=INVALID")
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).to.equal("bad request");
             });
         });
         it("GET: 400 returns bad request when passed a query with an invalid parameter", () => {
