@@ -360,8 +360,80 @@ describe("/api", () => {
           expect(msg).to.equal("topic not found");
         });
     });
-    it("PUT PATCH DELETE POST returns 405 on api/articles end point", () => {
-      const invalidMethods = ["patch", "put", "delete", "post"];
+    it("POST: 200 returns posted article when passed valid body data", () => {
+      const input = {
+        title: "test article",
+        body: "This is a test article generated as part of the test suite",
+        author: "lurker",
+        topic: "paper"
+      };
+      return request(server)
+        .post("/api/articles")
+        .send(input)
+        .expect(201)
+        .then(({ body }) => {
+          expect(body).to.have.keys("article");
+          expect(body.article).to.have.keys(
+            "article_id",
+            "title",
+            "body",
+            "votes",
+            "topic",
+            "author",
+            "created_at"
+          );
+          expect(body.article.votes).to.equal(0);
+          expect(body.article.author).to.equal("lurker");
+          expect(body.article.title).to.equal("test article");
+          expect(body.article.topic).to.equal("paper");
+        });
+    });
+    it("POST: 404 returns bad request when passed a username in the body that does not exist", () => {
+      const input = {
+        title: "test article",
+        body: "This is a test article generated as part of the test suite",
+        author: "INVALID",
+        topic: "paper"
+      };
+      return request(server)
+        .post("/api/articles")
+        .send(input)
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("not found");
+        });
+    });
+    it("POST: 404 returns not found when passed a topic that does not exist", () => {
+      const input = {
+        title: "test article",
+        body: "This is a test article generated as part of the test suite",
+        author: "lurker",
+        topic: "INVALID"
+      };
+      return request(server)
+        .post("/api/articles")
+        .send(input)
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("not found");
+        });
+    });
+    it("POST: 400 returns bad request when passed a body that doesnt contain all requried keys", () => {
+      const input = {
+        title: "test article",
+        body: "This is a test article generated as part of the test suite",
+        author: "lurker"
+      };
+      return request(server)
+        .post("/api/articles")
+        .send(input)
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("bad request - not enough data provided");
+        });
+    });
+    it("PUT PATCH DELETE returns 405 on api/articles end point", () => {
+      const invalidMethods = ["patch", "put", "delete"];
       const methodPromises = invalidMethods.map(method => {
         return request(server)
           [method]("/api/articles")
@@ -499,8 +571,29 @@ describe("/api", () => {
             expect(body.article.votes).to.equal(2);
           });
       });
-      it("PUT, POST, DELETE: 405 returns method not allowed", () => {
-        const invalidMethods = ["put", "delete", "post"];
+      it("DELETE: 204 no return when passed a valid article_id", () => {
+        return request(server)
+          .delete("/api/articles/1")
+          .expect(204);
+      });
+      it("DELETE: 404 returns not found when passed a valid but non existant article_id", () => {
+        return request(server)
+          .delete("/api/articles/9999")
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("article not found");
+          });
+      });
+      it("DELETE: 400 returns bad request when passed an invalid article_id", () => {
+        return request(server)
+          .delete("/api/articles/INVALID")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("bad request");
+          });
+      });
+      it("PUT, POST: 405 returns method not allowed", () => {
+        const invalidMethods = ["put", "post"];
         const methodPromises = invalidMethods.map(method => {
           return request(server)
             [method]("/api/articles/4")

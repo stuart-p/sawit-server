@@ -113,4 +113,49 @@ function updateArticle(articleToUpdate, votesToUpdate) {
     });
 }
 
-module.exports = { fetchArticle, fetchAllArticles, updateArticle };
+function createArticle(title, body, author, topic) {
+  if (
+    title === undefined ||
+    body === undefined ||
+    author === undefined ||
+    topic === undefined
+  ) {
+    return Promise.reject({
+      status: 400,
+      msg: "bad request - not enough data provided"
+    });
+  }
+  const constructedArticle = {
+    title,
+    body,
+    author,
+    topic
+  };
+  return database
+    .insert(constructedArticle)
+    .into("articles")
+    .returning("*")
+    .then(postedArticleArray => {
+      return postedArticleArray[0];
+    });
+}
+
+function delArticle(article_id) {
+  return database
+    .delete()
+    .from("articles")
+    .where("article_id", article_id)
+    .then(numDeleted => {
+      if (numDeleted === 0) {
+        return Promise.reject({ status: 404, msg: "article not found" });
+      }
+    });
+}
+
+module.exports = {
+  fetchArticle,
+  fetchAllArticles,
+  updateArticle,
+  createArticle,
+  delArticle
+};

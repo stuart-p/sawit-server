@@ -12,9 +12,9 @@ The server is obviously meant to be accessed via a front end, however the API ca
 Sawit-server.herokuapp.com
 ├── /api (GET)
       ├── /topics (GET)
-      ├── /articles (GET [sort_by, order, author, topic])
+      ├── /articles (GET [sort_by, order, author, topic, page, page limit], POST)
             ├── /:article_id (GET, PATCH)
-                    ├── /comments (GET [sort_by, order], POST)
+                    ├── /comments (GET [sort_by, order, page, page limit], POST)
                     ├── /:article_id (GET, PATCH [inc_vote])
       ├── /users
               ├── /:username (GET)

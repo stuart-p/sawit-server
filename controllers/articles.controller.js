@@ -1,7 +1,9 @@
 const {
   fetchArticle,
   fetchAllArticles,
-  updateArticle
+  updateArticle,
+  createArticle,
+  delArticle
 } = require("../models/articles.model");
 
 const { fetchUserData } = require("../models/users.model");
@@ -48,6 +50,28 @@ exports.patchArticle = (req, res, next) => {
   updateArticle(article_id, inc_votes)
     .then(article => {
       res.status(200).send({ article });
+    })
+    .catch(err => {
+      next(err);
+    });
+};
+
+exports.postArticle = (req, res, next) => {
+  const { body } = req;
+  createArticle(body.title, body.body, body.author, body.topic)
+    .then(article => {
+      res.status(201).send({ article });
+    })
+    .catch(err => {
+      next(err);
+    });
+};
+
+exports.deleteArticle = (req, res, next) => {
+  const { article_id } = req.params;
+  delArticle(article_id)
+    .then(() => {
+      res.status(204).send();
     })
     .catch(err => {
       next(err);
