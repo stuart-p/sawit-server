@@ -88,7 +88,7 @@ describe("/api", () => {
     });
   });
   describe("/api/users", () => {
-    it.only("GET: 200 returns a list of all users", () => {
+    it("GET: 200 returns a list of all users", () => {
       return request(server)
         .get("/api/users")
         .expect(200)
