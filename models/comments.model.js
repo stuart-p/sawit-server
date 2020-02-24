@@ -31,7 +31,7 @@ function fetchCommentsOnArticle(
   if (order !== "asc" && order !== "desc") {
     return Promise.reject({
       status: 400,
-      msg: "bad request - query incorrectly formatted, but why???"
+      msg: "bad request - query incorrectly formatted"
     });
   }
   if (isNaN(p) || isNaN(limit)) {
