@@ -13,13 +13,14 @@ function fetchArticle(article_id) {
     )
     .from("articles")
     .leftJoin("comments", "articles.article_id", "=", "comments.article_id")
-    .count("*", { as: "comment_count" })
+    .count("comments", { as: "comment_count" })
     .groupBy("articles.article_id")
     .where("articles.article_id", article_id)
     .then(articleArray => {
       if (articleArray.length === 0) {
         return Promise.reject({ status: 404, msg: "article not found" });
       } else {
+        console.log(articleArray);
         articleArray[0].comment_count = parseInt(articleArray[0].comment_count);
         return articleArray[0];
       }
@@ -80,7 +81,7 @@ function fetchAllArticles(
     articleData
       .clone()
       .leftJoin("comments", "articles.article_id", "=", "comments.article_id")
-      .count("*", { as: "comment_count" })
+      .count("comments", { as: "comment_count" })
       .groupBy("articles.article_id")
       .orderBy(sort_by, order)
       .limit(limit)
