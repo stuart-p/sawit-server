@@ -24,7 +24,7 @@ Sawit-server.herokuapp.com
 
 It is recommended that endpoints are interrogated using a RESTful API test tool, such as [Insomnia](insomnia.rest).
 
-The frontend is accessible through [tbd]()
+The frontend is accessible through [https://saw-it-here-first.netlify.com](https://saw-it-here-first.netlify.com)
 
 ## Getting Started (development)
 
